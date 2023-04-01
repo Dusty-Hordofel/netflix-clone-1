@@ -330,7 +330,7 @@ model Movie {
 $ npm prisma db push
 ```
 
-### 7. [...nextauth]
+### 7. [...nextauth] API
 
 - install
 
@@ -404,7 +404,80 @@ export default NextAuth({
 });
 ```
 
-### 8.
+### 8. [Register API](/pages/api/register.ts)
+
+- create [register](/pages/api/register.ts) && [auth](/pages/auth.tsx)
+
+```ts
+import bcrypt from "bcrypt";
+import prisma from "@/lib/prismadb";
+import { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "next-auth/client";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  //limit to POST requests
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
+
+  try {
+    //get the user's name, email and password from the request body
+    const { email, name, password } = req.body;
+    //check if the user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    //if user already exists, return an appropriate error message
+    if (existingUser) {
+      return res.status(402).json({ message: "User already exists" });
+    }
+    //if user doesn't exist, hash the password
+    const hashedPassword = await bcrypt.hash(password, 12);
+    //create the user in the database
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        hashedPassword,
+        image: "",
+        emailVerified: new Date(),
+      },
+    });
+
+    return res.status(201).json(user);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).end();
+  }
+}
+```
+
+- update [auth](/pages/auth.tsx)
+
+```tsx
+//resgister user
+const register = useCallback(async () => {
+  try {
+    await axios.post("/api/auth/register", { email, name, password });
+  } catch (error) {
+    console.log("🚀 ~ file: auth.tsx:22 ~ register ~ error:", error);
+  }
+}, [email, name, password]);
+//---------- submit button
+<button
+  onClick={register}
+  className="w-full py-3 mt-10 text-white transition bg-red-600 rounded-md hover:bg-red-700"
+>
+  {variant === "login" ? "Login" : "Sign up"}
+</button>;
+```
+
+- test [register()](/pages/auth.tsx) & [Register API](/pages/api/register.ts)
 
 ### 9.
 
