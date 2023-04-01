@@ -479,7 +479,36 @@ const register = useCallback(async () => {
 
 - test [register()](/pages/auth.tsx) & [Register API](/pages/api/register.ts)
 
-### 9.
+### 9. [Login()](/pages/auth.tsx)
+
+- import {SignIn} from "next-auth/react"
+- create [Login()](/pages/auth.tsx)
+
+```js
+//login user
+const login = useCallback(async () => {
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      callbackUrl: "/",
+    });
+
+    router.push("/");
+  } catch (error) {
+    console.log(error);
+  }
+}, [email, password, router]);
+
+//---- conditional rendering
+<button
+  onClick={variant === "login" ? login : register}
+  className="w-full py-3 mt-10 text-white transition bg-red-600 rounded-md hover:bg-red-700"
+>
+  {variant === "login" ? "Login" : "Sign up"}
+</button>;
+```
 
 ### 10.
 
