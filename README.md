@@ -218,6 +218,49 @@ const Auth = () => {
 export default Auth;
 ```
 
-### 5.
+## Section 3: NextAuth Prisma MongoDB
 
-### 6.
+### 5. Install Prisma
+
+- install [Prisma](https://www.prisma.io/docs/getting-started/quickstart)
+
+```bash
+$ npm i -D prisma
+$ npx prisma init
+$ npm install next-auth @prisma/client @next-auth/prisma-adapter
+```
+
+- create [prismadb.ts](/lib/prismadb.ts)
+
+```ts
+import { PrismaClient } from "@prisma/client";
+
+declare global {
+  var prisma: PrismaClient | undefined;
+}
+
+const client = globalThis.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalThis.prisma = client;
+
+export default client;
+```
+
+- create [global.d.ts](/global.d.ts)
+
+#### NB: We can directly include that in [prismadb.ts](/lib/prismadb.ts)
+
+```ts
+import { PrismaClient } from "@prisma/client";
+declare global {
+  namespace globalThis {
+    var prisma: prismaClient | undefined;
+  }
+}
+```
+
+- Prisma connect to mongoDB database
+  - fill [env](/.env)
+
+### 6. Create Models
+
+- create [User-Post-Comment-Notification model](/prisma/schema.prisma)
