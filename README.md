@@ -510,8 +510,61 @@ const login = useCallback(async () => {
 </button>;
 ```
 
+## Section 4: Google and Github Auth
+
 ### 10.
+
+- install
+
+```bash
+$ npm i react-icons
+```
+
+- add [Google and Github Provider](/pages/auth.tsx)
+
+```tsx
+<div className="flex flex-row items-center justify-center gap-4 mt-8">
+  <div
+    onClick={() => signIn("google", { callbackUrl: "/profiles" })}
+    className="flex items-center justify-center w-10 h-10 transition bg-white rounded-full cursor-pointer hover:opacity-80"
+  >
+    <FcGoogle size={32} />
+  </div>
+  <div
+    onClick={() => signIn("github", { callbackUrl: "/profiles" })}
+    className="flex items-center justify-center w-10 h-10 transition bg-white rounded-full cursor-pointer hover:opacity-80"
+  >
+    <FaGithub size={32} />
+  </div>
+</div>
+```
+
+- add [Github and Google env variables](/.env)
+- add [Google and Github Providers](/pages/api/auth/[...nextauth].ts)
+
+```ts
+GithubProvider({
+        clientId: process.env.GITHUB_ID || '',
+        clientSecret: process.env.GITHUB_SECRET || '',
+      }),
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      }),
+```
+
+![Github](./public/images/github.png)
+
+- generate `Github secret and client` in [Github secret and id](/https://github.com) && [auth](/pages/auth.tsx)
+
+![Google](./public/images/google.png)
+
+- generate `Google secret and client` in [Google console](https://console.cloud.google.com)
 
 ### 11.
 
 ### 12.
+
+## External Links
+
+- [React icons](https://react-icons.github.io/react-icons/)
