@@ -512,7 +512,7 @@ const login = useCallback(async () => {
 
 ## Section 4: Google and Github Auth
 
-### 10.
+### 10. Add Google and Github Authentication
 
 - install
 
@@ -561,9 +561,252 @@ GithubProvider({
 
 - generate `Google secret and client` in [Google console](https://console.cloud.google.com)
 
-### 11.
+## Section 5:Protecting routes, Profiles screen
 
-### 12.
+### 11. ServerAuth
+
+- create [ServerAuth](/lib/serverAuth.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "next-auth/client";
+import prismadb from "@/lib/prismadb";
+
+//NB: we are going to use that to check if user is signed in and get user object from prisma db
+//receive api request and return user object
+const serverAuth = async (req: NextApiRequest) => {
+  //get session from next-auth client, receive user object
+  const session = await getSession({ req }); //we use session to get other fields from user object (fields are defined in prisma schema)
+
+  //check if session exists
+  if (!session?.user?.email) {
+    throw new Error("Not signed in");
+  }
+
+  //get user from prisma db
+  const currentUser = await prismadb.user.findUnique({
+    where: {
+      email: session.user.email,
+    },
+  });
+
+  //check if user exists
+  if (!currentUser) {
+    throw new Error("Not signed in");
+  }
+
+  //return user object
+  return { currentUser };
+};
+
+export default serverAuth;
+```
+
+### 12.currentUser Route
+
+- create [current](/pages/api/current.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import serverAuth from "@/lib/serverAuth"; //to check if user is signed in and get user object from prisma db
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  //check if request method is GET
+  if (req.method !== "GET") {
+    return res.status(405).end();
+  }
+  try {
+    //get user object from prisma db
+    const { currentUser } = await serverAuth(req); //we don't chack if this user exists because we already did it in serverAuth
+    //return user object
+    return res.status(200).json({ currentUser });
+  } catch (error) {
+    console.log("🚀 ~ file: current.ts:18 ~ error:", error);
+    res.status(400).end();
+  }
+}
+```
+
+### 13. create fetcher lib for react SWR
+
+- create [fetcher](/lib/fetcher.ts)
+
+```ts
+import axios from "axios";
+
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+export default fetcher;
+```
+
+### 14. create useCurrentUser hooks
+
+<!--  useCurrentUser hooks  is used to load the current user-->
+
+- install SWR
+
+```bash
+npm install swr
+```
+
+- create [useCurrentUser](/hooks/useCurrentUser.ts)
+
+```ts
+import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
+
+const useCurrentUser = () => {
+  const { data, error, isLoading, mutate } = useSWR("/api/current", fetcher); //it will fetch data from /api/current and return user object
+  //SWR don't refetch the data if it's already in cache
+
+  return {
+    data,
+    isLoading,
+    mutate,
+    error,
+  };
+};
+
+export default useCurrentUser;
+```
+
+### 15. Protect our Home Route
+
+<!-- user cannot visit homePage if he is not logged -->
+
+- [index](/pages/index.tsx)
+
+```tsx
+import { NextPageContext } from "next";
+import { getSession, signOut } from "next-auth/react";
+
+export async function getServerSideProps(context: NextPageContext) {
+  //we cannot use our serverAuth function because we are  in the client side
+  const session = await getSession(context); //this will return a session object if the user is authenticated
+
+  //if the user is not authenticated, we will redirect him to the authentication page
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/auth",
+        permanent: false,
+      },
+    };
+  }
+  //if the user is authenticated, we will return the session object
+  return {
+    props: {
+      // session,
+    },
+  };
+}
+
+export default function Home() {
+  return (
+    <>
+      <h1 className="text-amber-400 text-bold ">Netflix clone</h1>
+      <button className="w-full h-10 bg-white" onClick={() => signOut()}>
+        Logout!
+      </button>
+    </>
+  );
+}
+```
+
+### 16. fetch user using useCurrentUser hook
+
+```ts
+export default function Home() {
+  //fetch user using useCurrentUser hook
+  const { data: user } = useCurrentUser(); //this will return a user object if the user is authenticated
+  console.log("🚀 ~ file: index.tsx:29 ~ Home ~ user:", user?.currentUser.name);
+
+  return (
+    <>
+      <h1 className="text-amber-400 text-bold ">Netflix clone</h1>
+      <p className="text-white">Logged in as : {user?.currentUser.name}</p>
+      <button className="w-full h-10 bg-white" onClick={() => signOut()}>
+        Logout!
+      </button>
+    </>
+  );
+}
+```
+
+### 17. Profile Screen
+
+- create [profiles](/pages/profiles.tsx)
+
+```ts
+import useCurrentUser from "@/hooks/useCurrentUser";
+import { NextPageContext } from "next";
+import { getSession, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+
+export async function getServerSideProps(context: NextPageContext) {
+  //we cannot use our serverAuth function because we are  in the client side
+  const session = await getSession(context); //this will return a session object if the user is authenticated
+
+  //if the user is not authenticated, we will redirect him to the authentication page
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/auth",
+        permanent: false,
+      },
+    };
+  }
+  //if the user is authenticated, we will return the session object
+  return {
+    props: {},
+  };
+}
+
+const profiles = () => {
+  const router = useRouter();
+  const { data: user } = useCurrentUser();
+  console.log(
+    "🚀 ~ file: profiles.tsx:26 ~ profiles ~ data:",
+    user?.currentUser.name
+  );
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col">
+        <h1 className="text-3xl text-center text-white md:text-6xl">
+          who is watching
+        </h1>
+        <div className="flex items-center justify-center gap-8 mt-10">
+          <div className="cursor-pointer" onClick={() => router.push("/")}>
+            <div className="flex-row mx-auto group w-44">
+              <div className="relative flex items-center justify-center overflow-hidden border-2 border-transparent rounded h-44 w-44 group-hover:cursor-pointer group-hover:border-white">
+                <img src="/images/default-blue.png" alt="profile" />
+              </div>
+              <div className="mt-4 text-2xl text-center text-gray-400 group-hover:text-white">
+                {user?.currentUser.name}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default profiles;
+```
+
+- redirect to [profiles](/pages/profiles.tsx) instead of [Homes](/pages/index.tsx) in [auth](/pages/auth.tsx)
+
+## Section 6:
+
+## Section 7:
+
+## Section 8:
+
+## Section 9:
 
 ## External Links
 

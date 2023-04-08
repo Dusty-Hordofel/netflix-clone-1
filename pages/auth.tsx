@@ -2,12 +2,12 @@ import Input from "@/components/Input";
 import axios from "axios";
 import { useCallback, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { useRouter } from "next/router";
 
 const Auth = () => {
-  const router = useRouter();
+  // const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -29,15 +29,15 @@ const Auth = () => {
       await signIn("credentials", {
         email,
         password,
-        redirect: false,
-        callbackUrl: "/",
+        // redirect: false,
+        callbackUrl: "/profiles", //replace "/" to "/profiles" to redirect to profiles page after login
       });
 
-      router.push("/");
+      // router.push("/"); remove router as a dependencies
     } catch (error) {
       console.log(error);
     }
-  }, [email, password, router]);
+  }, [email, password]);
 
   //resgister user
   const register = useCallback(async () => {
@@ -99,13 +99,13 @@ const Auth = () => {
               </button>
               <div className="flex flex-row items-center justify-center gap-4 mt-8">
                 <div
-                  onClick={() => signIn("google", { callbackUrl: "/" })}
+                  onClick={() => signIn("google", { callbackUrl: "/profiles" })}
                   className="flex items-center justify-center w-10 h-10 transition bg-white rounded-full cursor-pointer hover:opacity-80"
                 >
                   <FcGoogle size={32} />
                 </div>
                 <div
-                  onClick={() => signIn("github", { callbackUrl: "/" })}
+                  onClick={() => signIn("github", { callbackUrl: "/profiles" })}
                   className="flex items-center justify-center w-10 h-10 transition bg-white rounded-full cursor-pointer hover:opacity-80"
                 >
                   <FaGithub size={32} />
