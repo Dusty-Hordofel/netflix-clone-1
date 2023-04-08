@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
+import { getSession } from "next-auth/react";
 import prismadb from "@/lib/prismadb";
 
 //NB: we are going to use that to check if user is signed in and get user object from prisma db
