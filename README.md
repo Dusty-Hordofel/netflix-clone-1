@@ -630,7 +630,17 @@ export default async function handler(
 }
 ```
 
-### 13.
+### 13. create fetcher lib for react SWR
+
+- create [fetcher](/lib/fetcher.ts)
+
+```ts
+import axios from "axios";
+
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+export default fetcher;
+```
 
 ### 14.
 
