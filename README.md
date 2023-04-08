@@ -800,7 +800,39 @@ export default profiles;
 
 - redirect to [profiles](/pages/profiles.tsx) instead of [Homes](/pages/index.tsx) in [auth](/pages/auth.tsx)
 
-## Section 6:
+## Section 6:Navbar
+
+### 17. NavbarItem
+
+- create [Navbar](/components/Navbar.tsx)
+- [NavbarItem](/components/NavbarItem.tsx)
+
+```tsx
+import React from "react";
+
+interface NavbarItemProps {
+  label: string;
+  active?: boolean;
+}
+
+const NavbarItem = ({ label, active }: NavbarItemProps) => {
+  return (
+    <div
+      className={
+        active
+          ? "text-white cursor-default"
+          : "text-gray-200 hover:text-gray-300 cursor-pointer transition"
+      }
+    >
+      {label}
+    </div>
+  );
+};
+
+export default NavbarItem;
+```
+
+- create [Navbar](/components/Navbar.tsx)
 
 ## Section 7:
 
