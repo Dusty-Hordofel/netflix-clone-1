@@ -512,7 +512,7 @@ const login = useCallback(async () => {
 
 ## Section 4: Google and Github Auth
 
-### 10.
+### 10. Add Google and Github Authentication
 
 - install
 
@@ -561,9 +561,66 @@ GithubProvider({
 
 - generate `Google secret and client` in [Google console](https://console.cloud.google.com)
 
-### 11.
+## Section 5:Protecting routes, Profiles screen
+
+### 11. ServerAuth
+
+- create [ServerAuth](/lib/serverAuth.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "next-auth/client";
+import prismadb from "@/lib/prismadb";
+
+//NB: we are going to use that to check if user is signed in and get user object from prisma db
+//receive api request and return user object
+const serverAuth = async (req: NextApiRequest) => {
+  //get session from next-auth client, receive user object
+  const session = await getSession({ req }); //we use session to get other fields from user object (fields are defined in prisma schema)
+
+  //check if session exists
+  if (!session?.user?.email) {
+    throw new Error("Not signed in");
+  }
+
+  //get user from prisma db
+  const currentUser = await prismadb.user.findUnique({
+    where: {
+      email: session.user.email,
+    },
+  });
+
+  //check if user exists
+  if (!currentUser) {
+    throw new Error("Not signed in");
+  }
+
+  //return user object
+  return { currentUser };
+};
+
+export default serverAuth;
+```
 
 ### 12.
+
+### 13.
+
+### 14.
+
+### 15.
+
+### 16.
+
+### 17.
+
+## Section 6:
+
+## Section 7:
+
+## Section 8:
+
+## Section 9:
 
 ## External Links
 

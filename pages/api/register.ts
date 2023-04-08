@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prismadb";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/client";
 
 export default async function handler(
   req: NextApiRequest,
