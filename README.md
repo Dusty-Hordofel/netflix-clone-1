@@ -642,7 +642,36 @@ const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 export default fetcher;
 ```
 
-### 14.
+### 14. create useCurrentUser hooks
+
+<!--  useCurrentUser hooks  is used to load the current user-->
+
+- install SWR
+
+```bash
+npm install swr
+```
+
+- create [useCurrentUser](/hooks/useCurrentUser.ts)
+
+```ts
+import useSWR from "swr";
+import fetcher from "@/lib/fetcher";
+
+const useCurrentUser = () => {
+  const { data, error, isLoading, mutate } = useSWR("/api/current", fetcher); //it will fetch data from /api/current and return user object
+  //SWR don't refetch the data if it's already in cache
+
+  return {
+    data,
+    isLoading,
+    mutate,
+    error,
+  };
+};
+
+export default useCurrentUser;
+```
 
 ### 15.
 
