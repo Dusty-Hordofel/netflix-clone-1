@@ -1458,7 +1458,7 @@ export interface MovieInterface {
 
 ## Section 8: Favorites and List functionality
 
-### 25. Favorites List Api
+### 25. Favorite List Api [Delete and Add Movie our to Favorite List]
 
 - create [favorite Api](/pages/api/favorite.ts)
 
@@ -1544,7 +1544,42 @@ export default async function handler(
 }
 ```
 
-### 26.
+### 26. Api to Load our Favorites Movies
+
+- create [favorites](/pages/api/favorites.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@/libs/prismadb"; //we can call it prisma or prismadb knowing we have default export
+import serverAuth from "@/libs/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    if (req.method !== "GET") {
+      return res.status(405).end();
+    }
+
+    const { currentUser } = await serverAuth(req);
+
+    const favoritedMovies = await prisma.movie.findMany({
+      where: {
+        id: {
+          in: currentUser?.favoriteIds,
+        },
+      },
+    });
+
+    return res.status(200).json(favoritedMovies);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).end();
+  }
+}
+```
 
 ### 27.
 

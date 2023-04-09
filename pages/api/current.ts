@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import serverAuth from "@/lib/serverAuth"; //to check if user is signed in and get user object from prisma db
+import serverAuth from "@/libs/serverAuth"; //to check if user is signed in and get user object from prisma db
 
 export default async function handler(
   req: NextApiRequest,

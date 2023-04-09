@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/lib/prismadb";
-import serverAuth from "@/lib/serverAuth"; //to check if user is logged in or to authenticate our route
+import prisma from "@/libs/prismadb";
+import serverAuth from "@/libs/serverAuth"; //to check if user is logged in or to authenticate our route
 
 export default async function handler(
   req: NextApiRequest,
