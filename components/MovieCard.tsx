@@ -5,6 +5,7 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 
 import { MovieInterface } from "@/types";
 import FavoriteButton from "@/components/FavoriteButton";
+import useInfoModalStore from "@/hooks/useInfoModalStore";
 
 interface MovieCardProps {
   data: MovieInterface;
@@ -12,6 +13,7 @@ interface MovieCardProps {
 
 const MovieCard = ({ data }: MovieCardProps) => {
   const router = useRouter();
+  const { openModal } = useInfoModalStore();
 
   const redirectToWatch = useCallback(
     () => router.push(`/watch/${data.id}`),
@@ -74,7 +76,7 @@ const MovieCard = ({ data }: MovieCardProps) => {
           h-[12vw]
         "
         />
-        <div className="absolute z-10 w-full p-2 transition shadow-md bg-zinc-800 lg:p-4 rounded-b-md">
+        <div className="absolute z-10 w-full p-2 transition shadow-md  bg-zinc-800 lg:p-4 rounded-b-md">
           <div className="flex flex-row items-center gap-3">
             <div
               onClick={redirectToWatch}
@@ -83,6 +85,12 @@ const MovieCard = ({ data }: MovieCardProps) => {
               <PlayIcon className="w-4 text-black lg:w-6" />
             </div>
             <FavoriteButton movieId={data.id} />
+            <div
+              onClick={() => openModal(data?.id)}
+              className="flex items-center justify-center w-6 h-6 ml-auto transition border-2 border-white rounded-full cursor-pointer group/item lg:w-10 lg:h-10 hover:border-neutral-300"
+            >
+              <ChevronDownIcon className="w-4 text-white group-hover/item:text-neutral-300 lg:w-6" />
+            </div>
           </div>
           <p className="mt-4 font-semibold text-green-400">
             New <span className="text-white">2023</span>
