@@ -4,8 +4,7 @@ import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 
 import { MovieInterface } from "@/types";
-// import FavoriteButton from "@/components/FavoriteButton";
-// import useInfoModalStore from "@/hooks/useInfoModalStore";
+import FavoriteButton from "@/components/FavoriteButton";
 
 interface MovieCardProps {
   data: MovieInterface;
@@ -13,7 +12,6 @@ interface MovieCardProps {
 
 const MovieCard = ({ data }: MovieCardProps) => {
   const router = useRouter();
-  //   const { openModal } = useInfoModalStore();
 
   const redirectToWatch = useCallback(
     () => router.push(`/watch/${data.id}`),
@@ -84,13 +82,7 @@ const MovieCard = ({ data }: MovieCardProps) => {
             >
               <PlayIcon className="w-4 text-black lg:w-6" />
             </div>
-            {/* <FavoriteButton movieId={data.id} /> */}
-            <div
-              //   onClick={() => openModal(data?.id)}
-              className="flex items-center justify-center w-6 h-6 ml-auto transition border-2 border-white rounded-full cursor-pointer group/item lg:w-10 lg:h-10 hover:border-neutral-300"
-            >
-              <ChevronDownIcon className="w-4 text-white group-hover/item:text-neutral-300 lg:w-6" />
-            </div>
+            <FavoriteButton movieId={data.id} />
           </div>
           <p className="mt-4 font-semibold text-green-400">
             New <span className="text-white">2023</span>
