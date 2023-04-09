@@ -21,7 +21,7 @@ const MovieCard = ({ data }: MovieCardProps) => {
   return (
     <div className="group bg-zinc-900 col-span relative h-[12vw]">
       <img
-        // onClick={redirectToWatch}
+        onClick={redirectToWatch}
         src={data.thumbnailUrl}
         alt="Movie"
         draggable={false}
@@ -59,7 +59,7 @@ const MovieCard = ({ data }: MovieCardProps) => {
       "
       >
         <img
-          //   onClick={redirectToWatch}
+          onClick={redirectToWatch}
           src={data.thumbnailUrl}
           alt="Movie"
           draggable={false}

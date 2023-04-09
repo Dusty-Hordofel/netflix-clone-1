@@ -1732,11 +1732,162 @@ export default function Home() {
 }
 ```
 
-### 29.
+## Section 9: Play Button, Video Player, Single Movie Endpoint
 
-### 30.
+### 29. movieId API
 
-## Section 9:
+- create [movieId API](/pages/api/movies/[movieId].ts)
+
+```tsx
+import { NextApiRequest, NextApiResponse } from "next";
+import prismadb from "@/libs/prismadb";
+import serverAuth from "@/libs/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    //limit the request to GET only
+    if (req.method !== "GET") {
+      return res.status(405).end();
+    }
+    //check if the user is logged in
+    await serverAuth(req);
+
+    //in Nextjs when we define a route like this [movieId].ts we can access the movieId using req.query.movieId
+    const { movieId } = req.query;
+
+    //if the movieId is not a string throw an error
+    if (typeof movieId !== "string") {
+      throw new Error("Invalid Id");
+    }
+    //if the movieId is empty throw an error
+    if (!movieId) {
+      throw new Error("Missing Id");
+    }
+    //find the movie in the database using the movie id
+    const movies = await prismadb.movie.findUnique({
+      where: {
+        id: movieId,
+      },
+    });
+    //return the movie
+    return res.status(200).json(movies);
+  } catch (error) {
+    console.log("🚀 ~ file: movieId.ts:37 ~ error:", error);
+    return res.status(500).end();
+  }
+}
+```
+
+### 30. useMovie hooks
+
+- create [useMovie](/hooks/useMovie.tsx)
+
+```ts
+import useSwr from "swr";
+import fetcher from "@/libs/fetcher";
+
+const useMovie = (id?: string) => {
+  const { data, error, isLoading } = useSwr(
+    id ? `/api/movies/${id}` : null,
+    fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+  return {
+    data,
+    error,
+    isLoading,
+  };
+};
+
+export default useMovie;
+```
+
+### 31. Play Button
+
+- create [PlayButton](/components/PlayButton.tsx) && [Billboard](/components/Billboard.tsx)
+
+```tsx
+import React from "react";
+import { PlayIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/router";
+
+interface PlayButtonProps {
+  movieId: string;
+}
+
+const PlayButton = ({ movieId }: PlayButtonProps) => {
+  const router = useRouter();
+
+  return (
+    <button
+      onClick={() => router.push(`/watch/${movieId}`)}
+      className="flex flex-row items-center w-auto px-2 py-1 text-xs font-semibold transition bg-white rounded-md  md:py-2 md:px-4 lg:text-lg hover:bg-neutral-300"
+    >
+      <PlayIcon className="w-4 mr-1 text-black md:w-7" />
+      Play
+    </button>
+  );
+};
+
+export default PlayButton;
+```
+
+### 32. Watch Page
+
+- create [Watch](/pages/watch/[movieId].tsx)
+
+```ts
+import React from "react";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useRouter } from "next/router";
+import useMovie from "@/hooks/useMovie";
+
+const Watch = () => {
+  const router = useRouter();
+  const { movieId } = router.query;
+
+  const { data } = useMovie(movieId as string);
+
+  return (
+    <div className="h-screen w-screen bg-black">
+      <nav className="fixed w-full p-4 z-10 flex flex-row items-center gap-8 bg-black bg-opacity-70">
+        <ArrowLeftIcon
+          onClick={() => router.push("/")}
+          className="w-4 md:w-10 text-white cursor-pointer hover:opacity-80 transition"
+        />
+        <p className="text-white text-1xl md:text-3xl font-bold">
+          <span className="font-light">Watching:</span> {data?.title}
+        </p>
+      </nav>
+      <video
+        className="h-full w-full"
+        autoPlay
+        controls
+        src={data?.videoUrl}
+      ></video>
+    </div>
+  );
+};
+
+export default Watch;
+```
+
+### 33.
+
+### 34.
+
+### 35.
+
+### 36.
+
+### 37.
 
 ## External Links
 
