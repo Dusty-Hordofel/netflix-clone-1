@@ -79,6 +79,7 @@ const App = () => {
 
 export default App;
 
+//Profile.tsx old
 /*import useCurrentUser from "@/hooks/useCurrentUser";
 import { NextPageContext } from "next";
 import { getSession, useSession } from "next-auth/react";
