@@ -1137,7 +1137,7 @@ export default Navbar;
 
 ## Section 7: BillBoard & Random Movie
 
-### 21. BillBoard Component
+### 21. random Api
 
 - add [movies](/movies.json) data to the Mongodb data base
 - create [random Api](/pages/api/random.ts)
@@ -1169,9 +1169,29 @@ export default async function handler(
 }
 ```
 
-## Section 8:
+### 22. Billboard hooks
 
-### 22. BillBoard Component
+- create [useBillboard](/hooks/useBillboard.ts)
+
+```tsx
+import useSwr from "swr";
+import fetcher from "@/lib/fetcher";
+
+const useBillboard = () => {
+  const { data, error, isLoading } = useSwr("/api/random", fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+  return {
+    data,
+    error,
+    isLoading,
+  };
+};
+
+export default useBillboard;
+```
 
 ### 23.
 
@@ -1180,6 +1200,8 @@ export default async function handler(
 ### 25.
 
 ### 26.
+
+## Section 8:
 
 ### 27.
 
