@@ -1732,11 +1732,56 @@ export default function Home() {
 }
 ```
 
-### 29.
+## Section 9: Play Button, Video Player, Single Movie Endpoint
+
+### 29. movieId API
+
+- create [movieId API](/pages/api/movies/movieId.ts)
+
+```tsx
+import { NextApiRequest, NextApiResponse } from "next";
+import prismadb from "@/libs/prismadb";
+import serverAuth from "@/libs/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    //limit the request to GET only
+    if (req.method !== "GET") {
+      return res.status(405).end();
+    }
+    //check if the user is logged in
+    await serverAuth(req);
+
+    //in Nextjs when we define a route like this [movieId].ts we can access the movieId using req.query.movieId
+    const { movieId } = req.query;
+
+    //if the movieId is not a string throw an error
+    if (typeof movieId !== "string") {
+      throw new Error("Invalid Id");
+    }
+    //if the movieId is empty throw an error
+    if (!movieId) {
+      throw new Error("Missing Id");
+    }
+    //find the movie in the database using the movie id
+    const movies = await prismadb.movie.findUnique({
+      where: {
+        id: movieId,
+      },
+    });
+    //return the movie
+    return res.status(200).json(movies);
+  } catch (error) {
+    console.log("🚀 ~ file: movieId.ts:37 ~ error:", error);
+    return res.status(500).end();
+  }
+}
+```
 
 ### 30.
-
-## Section 9:
 
 ## External Links
 
