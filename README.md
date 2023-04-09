@@ -2005,6 +2005,9 @@ export default InfoModal;
 
 ### 35. Deploy project to Vercel
 
+- update [profiles](/pages/profiles.tsx)
+- run `npm run lint`
+
 ## External Links
 
 - [React icons](https://react-icons.github.io/react-icons/)
