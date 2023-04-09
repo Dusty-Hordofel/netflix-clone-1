@@ -1135,9 +1135,606 @@ const Navbar = () => {
 export default Navbar;
 ```
 
-## Section 7:
+## Section 7: BillBoard & Random Movie
 
-## Section 8:
+### 21. random Api
+
+- add [movies](/movies.json) data to the Mongodb data base
+- create [random Api](/pages/api/random.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import prisma from "@/lib/prismadb";
+import serverAuth from "@/lib/serverAuth"; //to check if user is logged in or to authenticate our route
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== "GET") return res.status(405).end();
+  try {
+    await serverAuth(req); //to check if user is logged in , here we don't retrieve the user because it's return it
+    const movieCount = await prisma.movie.count(); //to get the total number of movies
+    const randomIndex = Math.floor(Math.random() * movieCount); //to get a random number between 0 and the total number of movies
+    const randomMovies = await prisma.movie.findMany({
+      take: 1,
+      skip: randomIndex,
+    }); //to get 1  movie
+
+    res.status(200).json(randomMovies[0]);
+  } catch (error) {
+    console.log("🚀 ~ file: random.ts:13 ~ error:", error);
+    res.status(500).end();
+  }
+}
+```
+
+### 22. Billboard hooks
+
+- create [useBillboard](/hooks/useBillboard.ts)
+
+```tsx
+import useSwr from "swr";
+import fetcher from "@/lib/fetcher";
+
+const useBillboard = () => {
+  const { data, error, isLoading } = useSwr("/api/random", fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+  return {
+    data,
+    error,
+    isLoading,
+  };
+};
+
+export default useBillboard;
+```
+
+### 23. Billboard
+
+- create [Billboard](/components/Billboard.tsx)
+
+```tsx
+import React, { useCallback } from "react";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
+
+import useBillboard from "@/hooks/useBillboard";
+
+const Billboard: React.FC = () => {
+  const { data } = useBillboard();
+
+  return (
+    <div className="relative h-[56.25vw]">
+      <video
+        poster={data?.thumbnailUrl}
+        className="w-full h-[56.25vw] object-cover brightness-[60%] transition duration-500"
+        autoPlay
+        muted
+        loop
+        src={data?.videoUrl}
+      ></video>
+      <div className="absolute top-[30%] md:top-[40%] ml-4 md:ml-16">
+        <p className="text-white text-1xl md:text-5xl h-full w-[50%] lg:text-6xl font-bold drop-shadow-xl">
+          {data?.title}
+        </p>
+        <p className="text-white text-[8px] md:text-lg mt-3 md:mt-8 w-[90%] md:w-[80%] lg:w-[50%] drop-shadow-xl">
+          {data?.description}
+        </p>
+        <div className="flex flex-row items-center gap-3 mt-3 md:mt-4">
+          <button className="flex flex-row items-center w-auto px-2 py-1 text-xs font-semibold text-white transition bg-white rounded-md bg-opacity-30 md:py-2 md:px-4 lg:text-lg hover:bg-opacity-20">
+            <InformationCircleIcon className="w-4 mr-1 md:w-7" />
+            More Info
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+export default Billboard;
+```
+
+### 24. Movie List
+
+- create [movies Api](/pages/api/movies/index.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import prisma from "@/lib/prismadb"; //prismadb or prisma
+import serverAuth from "@/lib/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    if (req.method !== "GET") {
+      return res.status(405).end();
+    }
+
+    await serverAuth(req);
+
+    //load all movies
+    const movies = await prisma.movie.findMany();
+    //return all movies
+    return res.status(200).json(movies);
+  } catch (error) {
+    console.log({ error });
+    return res.status(500).end();
+  }
+}
+```
+
+- create [useMovieList](/hooks/useMovieList.ts)
+
+```tsx
+import useSwr from "swr";
+import fetcher from "@/lib/fetcher";
+
+const useMovies = () => {
+  const { data, error, isLoading } = useSwr("/api/movies", fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+  return {
+    data,
+    error,
+    isLoading,
+  };
+};
+
+export default useMovies;
+```
+
+- create [MovieCard](/components/MovieCard.tsx)
+
+```tsx
+import React, { useCallback } from "react";
+import { useRouter } from "next/router";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { PlayIcon } from "@heroicons/react/24/solid";
+
+import { MovieInterface } from "@/types";
+// import FavoriteButton from "@/components/FavoriteButton";
+// import useInfoModalStore from "@/hooks/useInfoModalStore";
+
+interface MovieCardProps {
+  data: MovieInterface;
+}
+
+const MovieCard = ({ data }: MovieCardProps) => {
+  const router = useRouter();
+  //   const { openModal } = useInfoModalStore();
+
+  const redirectToWatch = useCallback(
+    () => router.push(`/watch/${data.id}`),
+    [router, data.id]
+  );
+
+  return (
+    <div className="group bg-zinc-900 col-span relative h-[12vw]">
+      <img
+        // onClick={redirectToWatch}
+        src={data.thumbnailUrl}
+        alt="Movie"
+        draggable={false}
+        className="
+        cursor-pointer
+        object-cover
+        transition
+        duration
+        shadow-xl
+        rounded-md
+        group-hover:opacity-90
+        sm:group-hover:opacity-0
+        delay-300
+        w-full
+        h-[12vw]
+      "
+      />
+      <div
+        className="
+        opacity-0
+        absolute
+        top-0
+        transition
+        duration-200
+        z-10
+        invisible
+        sm:visible
+        delay-300
+        w-full
+        scale-0
+        group-hover:scale-110
+        group-hover:-translate-y-[6vw]
+        group-hover:translate-x-[2vw]
+        group-hover:opacity-100
+      "
+      >
+        <img
+          //   onClick={redirectToWatch}
+          src={data.thumbnailUrl}
+          alt="Movie"
+          draggable={false}
+          className="
+          cursor-pointer
+          object-cover
+          transition
+          duration
+          shadow-xl
+          rounded-t-md
+          w-full
+          h-[12vw]
+        "
+        />
+        <div className="absolute z-10 w-full p-2 transition shadow-md bg-zinc-800 lg:p-4 rounded-b-md">
+          <div className="flex flex-row items-center gap-3">
+            <div
+              onClick={redirectToWatch}
+              className="flex items-center justify-center w-6 h-6 transition bg-white rounded-full cursor-pointer lg:w-10 lg:h-10 hover:bg-neutral-300"
+            >
+              <PlayIcon className="w-4 text-black lg:w-6" />
+            </div>
+            {/* <FavoriteButton movieId={data.id} /> */}
+            <div
+              //   onClick={() => openModal(data?.id)}
+              className="flex items-center justify-center w-6 h-6 ml-auto transition border-2 border-white rounded-full cursor-pointer group/item lg:w-10 lg:h-10 hover:border-neutral-300"
+            >
+              <ChevronDownIcon className="w-4 text-white group-hover/item:text-neutral-300 lg:w-6" />
+            </div>
+          </div>
+          <p className="mt-4 font-semibold text-green-400">
+            New <span className="text-white">2023</span>
+          </p>
+          <div className="flex flex-row items-center gap-2 mt-4">
+            <p className="text-white text-[10px] lg:text-sm">{data.duration}</p>
+          </div>
+          <div className="flex flex-row items-center gap-2 mt-4 text-[8px] text-white lg:text-sm">
+            <p>{data.genre}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MovieCard;
+```
+
+- create [](/components/MovieList.tsx)
+
+```tsx
+import React from "react";
+
+import { MovieInterface } from "@/types";
+import MovieCard from "@/components/MovieCard";
+import { isEmpty } from "lodash";
+
+interface MovieListProps {
+  data: MovieInterface[];
+  title: string;
+}
+
+const MovieList = ({ data, title }: MovieListProps) => {
+  if (isEmpty(data)) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 md:px-12 mt-4 space-y-8">
+      <div>
+        <p className="text-white text-md md:text-xl lg:text-2xl font-semibold mb-4">
+          {title}
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {data.map((movie) => (
+            <MovieCard key={movie.id} data={movie} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MovieList;
+```
+
+- create [types](/types/index.ts)
+
+```ts
+export interface MovieInterface {
+  id: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  videoUrl: string;
+  duration: string;
+  genre: string;
+}
+```
+
+## Section 8: Favorites and List functionality
+
+### 25. Favorite List Api [Delete and Add Movie our to Favorite List]
+
+- create [favorite Api](/pages/api/favorite.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import { without } from "lodash";
+
+import prismadb from "@/lib/prismadb";
+import serverAuth from "@/lib/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    if (req.method === "POST") {
+      const { currentUser } = await serverAuth(req); //to check if user is logged in , here we don't retrieve the user because it's return it
+
+      const { movieId } = req.body; //to get the movie id from the body
+
+      //find the movie in the database using the movie id
+      const existingMovie = await prismadb.movie.findUnique({
+        where: {
+          id: movieId,
+        },
+      });
+      //throw an error if the movie id is invalid
+      if (!existingMovie) {
+        throw new Error("Invalid ID");
+      }
+      //to update the user favoriteIds. we have a favoriteIds field in the user model witch is an array of strings
+      const user = await prismadb.user.update({
+        where: {
+          email: currentUser.email || "",
+        },
+        data: {
+          favoriteIds: {
+            push: movieId,
+          },
+        },
+      });
+      //return the updated user
+      return res.status(200).json(user);
+    }
+
+    if (req.method === "DELETE") {
+      const { currentUser } = await serverAuth(req);
+
+      //to get the movie id from the body
+      const { movieId } = req.body;
+
+      //find the movie in the database using the movie id
+      const existingMovie = await prismadb.movie.findUnique({
+        where: {
+          id: movieId,
+        },
+      });
+      //throw an error if the movie id is invalid
+      if (!existingMovie) {
+        throw new Error("Invalid ID");
+      }
+      //update the user List of favoriteIds
+      const updatedFavoriteIds = without(currentUser.favoriteIds, movieId);
+      //update the user after removing the movie id from the favoriteIds array
+      const updatedUser = await prismadb.user.update({
+        where: {
+          email: currentUser.email || "",
+        },
+        data: {
+          favoriteIds: updatedFavoriteIds,
+        },
+      });
+      //return the updated user
+      return res.status(200).json(updatedUser);
+    }
+    //if the request method is not POST or DELETE return an error
+    return res.status(405).end();
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).end();
+  }
+}
+```
+
+### 26. Api to Load our Favorite Movies
+
+- create [favorites](/pages/api/favorites.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+
+import prisma from "@/libs/prismadb"; //we can call it prisma or prismadb knowing we have default export
+import serverAuth from "@/libs/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    if (req.method !== "GET") {
+      return res.status(405).end();
+    }
+
+    const { currentUser } = await serverAuth(req);
+
+    const favoritedMovies = await prisma.movie.findMany({
+      where: {
+        id: {
+          in: currentUser?.favoriteIds,
+        },
+      },
+    });
+
+    return res.status(200).json(favoritedMovies);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).end();
+  }
+}
+```
+
+### 27. useFavorites hooks
+
+- create [useFavorites](/hooks/useFavorites.ts)
+
+```ts
+import useSwr from "swr";
+import fetcher from "@/libs/fetcher";
+
+const useMovies = () => {
+  const { data, error, isLoading, mutate } = useSwr("/api/favorites", fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+  return {
+    data,
+    error,
+    isLoading,
+    mutate,
+  };
+};
+
+export default useMovies;
+```
+
+### 28. FavoriteButton
+
+- create [FavoriteButton](/components/FavoriteButton.tsx)
+
+```tsx
+import axios from "axios";
+import React, { useCallback, useMemo } from "react";
+import { PlusIcon, CheckIcon } from "@heroicons/react/24/outline";
+
+import useCurrentUser from "@/hooks/useCurrentUser";
+import useFavorites from "@/hooks/useFavorites";
+
+interface FavoriteButtonProps {
+  movieId: string;
+}
+
+const FavoriteButton = ({ movieId }: FavoriteButtonProps) => {
+  const { mutate: mutateFavorites } = useFavorites();
+
+  const { data: currentUser, mutate } = useCurrentUser();
+  console.log(
+    "🚀 ~ file: FavoriteButton.tsx:16 ~ FavoriteButton ~ currentUser:",
+    currentUser
+  );
+
+  const isFavorite = useMemo(() => {
+    //assign user favoriteIds to a list variable or []
+    const list = currentUser?.currentUser.favoriteIds || [];
+    //verify if the movieId is in the list
+    return list.includes(movieId);
+  }, [currentUser, movieId]);
+
+  const toggleFavorites = useCallback(async () => {
+    let response;
+
+    //if the movieId is in the list:
+    if (isFavorite) {
+      //delete the movieId from the list
+      response = await axios.delete("/api/favorite", { data: { movieId } }); //in axios we have to add the data object to the delete request
+      console.log(
+        "🚀 ~ file: FavoriteButton.tsx:34 ~ toggleFavorites ~ response:",
+        response
+      );
+    } else {
+      //add the movieId to the list
+      response = await axios.post("/api/favorite", { movieId }); //in axios we haven't to add the data object to the post request
+      console.log(
+        "🚀 ~ file: FavoriteButton.tsx:37 ~ toggleFavorites ~ response:",
+        response
+      );
+    }
+
+    const updatedFavoriteIds = response?.data?.favoriteIds;
+    //update the currentUser object with the new list
+    mutate({
+      ...currentUser,
+      favoriteIds: updatedFavoriteIds,
+    });
+    mutateFavorites();
+  }, [movieId, isFavorite, currentUser, mutate, mutateFavorites]);
+
+  const Icon = isFavorite ? CheckIcon : PlusIcon;
+
+  return (
+    <div
+      onClick={toggleFavorites}
+      className="flex items-center justify-center w-6 h-6 transition border-2 border-white rounded-full cursor-pointer group/item lg:w-10 lg:h-10 hover:border-neutral-300"
+    >
+      <Icon className="w-4 text-white group-hover/item:text-neutral-300 lg:w-6" />
+    </div>
+  );
+};
+
+export default FavoriteButton;
+```
+
+- update [Home](/types/index.ts)
+
+```ts
+import Billboard from "@/components/Billboard";
+import MovieList from "@/components/MovieList";
+import Navbar from "@/components/Navbar";
+import useFavorites from "@/hooks/useFavorites";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import useMovieList from "@/hooks/useMovieList";
+import { NextPageContext } from "next";
+import { getSession, signOut } from "next-auth/react";
+
+export async function getServerSideProps(context: NextPageContext) {
+  //we cannot use our serverAuth function because we are  in the client side
+  const session = await getSession(context); //this will return a session object if the user is authenticated
+
+  //if the user is not authenticated, we will redirect him to the authentication page
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/auth",
+        permanent: false,
+      },
+    };
+  }
+  //if the user is authenticated, we will return the session object
+  return {
+    props: {
+      // session,
+    },
+  };
+}
+
+export default function Home() {
+  const { data: movies = [] } = useMovieList();
+  const { data: favorites = [] } = useFavorites();
+  return (
+    <>
+      <Navbar />
+      <Billboard />
+
+      <div className="pb-40">
+        <MovieList title="Trending Now" data={movies} />
+        <MovieList title="My List" data={favorites} />
+      </div>
+    </>
+  );
+}
+```
+
+### 29.
+
+### 30.
 
 ## Section 9:
 
