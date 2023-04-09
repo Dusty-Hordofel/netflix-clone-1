@@ -800,7 +800,340 @@ export default profiles;
 
 - redirect to [profiles](/pages/profiles.tsx) instead of [Homes](/pages/index.tsx) in [auth](/pages/auth.tsx)
 
-## Section 6:
+## Section 6:Navbar
+
+### 17. NavbarItem
+
+- create [Navbar](/components/Navbar.tsx)
+- [NavbarItem](/components/NavbarItem.tsx)
+
+```tsx
+import React from "react";
+
+interface NavbarItemProps {
+  label: string;
+  active?: boolean;
+}
+
+const NavbarItem = ({ label, active }: NavbarItemProps) => {
+  return (
+    <div
+      className={
+        active
+          ? "text-white cursor-default"
+          : "text-gray-200 hover:text-gray-300 cursor-pointer transition"
+      }
+    >
+      {label}
+    </div>
+  );
+};
+
+export default NavbarItem;
+```
+
+- create [Navbar](/components/Navbar.tsx)
+
+```tsx
+import NavbarItem from "./NavbarItem";
+
+const Navbar = () => {
+  return (
+    <div>
+      <NavbarItem label="Home" />
+    </div>
+  );
+};
+
+export default Navbar;
+```
+
+### 18. Navbar [NavbarItem]
+
+- install [heroicons](/https://www.npmjs.com/package/@heroicons/react)
+
+```tsx
+$ npm i @heroicons/react
+```
+
+- update create [Navbar](/components/Navbar.tsx)
+
+```tsx
+import NavbarItem from "@/components/NavbarItem";
+
+const Navbar = () => {
+  return (
+    <nav className="fixed z-40 w-full">
+      <div
+        className="px-4 md:px-16 py-6 flex flex-row items-center transition duration-500 $
+        bg-zinc-900 bg-opacity-90
+        "
+      >
+        <img src="/images/logo.png" className="h-4 lg:h-7" alt="Logo" />
+        <div className="flex-row hidden ml-8 gap-7 lg:flex">
+          <NavbarItem label="Home" active />
+          <NavbarItem label="Series" />
+          <NavbarItem label="Films" />
+          <NavbarItem label="New & Popular" />
+          <NavbarItem label="My List" />
+          <NavbarItem label="Browse by Languages" />
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
+```
+
+### 19. Navbar [MobileMenu]
+
+- create [MobileMenu](/components/MobileMenu.tsx)
+
+```tsx
+import React from "react";
+
+interface MobileMenuProps {
+  visible?: boolean;
+}
+
+const MobileMenu = ({ visible }: MobileMenuProps) => {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div className="absolute left-0 flex flex-col w-56 py-5 bg-black border-2 border-gray-800 top-8">
+      <div className="flex flex-col gap-4">
+        <div className="px-3 text-center text-white hover:underline">Home</div>
+        <div className="px-3 text-center text-white hover:underline">
+          Series
+        </div>
+        <div className="px-3 text-center text-white hover:underline">Films</div>
+        <div className="px-3 text-center text-white hover:underline">
+          New & Popular
+        </div>
+        <div className="px-3 text-center text-white hover:underline">
+          My List
+        </div>
+        <div className="px-3 text-center text-white hover:underline">
+          Browse by Languages
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MobileMenu;
+```
+
+- update create [Navbar](/components/Navbar.tsx)
+
+```tsx
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  BellIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/outline";
+
+import NavbarItem from "@/components/NavbarItem";
+import MobileMenu from "./MobileMenu";
+
+const Navbar = () => {
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const toggleMobileMenu = useCallback(() => {
+    setShowMobileMenu((current) => !current);
+  }, []);
+
+  return (
+    <nav className="fixed z-40 w-full">
+      <div className="flex flex-row items-center px-4 py-6 transition duration-500 md:px-16 ">
+        <img src="/images/logo.png" className="h-4 lg:h-7" alt="Logo" />
+        <div className="flex-row hidden ml-8 gap-7 lg:flex">
+          <NavbarItem label="Home" active />
+          <NavbarItem label="Series" />
+          <NavbarItem label="Films" />
+          <NavbarItem label="New & Popular" />
+          <NavbarItem label="My List" />
+          <NavbarItem label="Browse by Languages" />
+        </div>
+        <div
+          onClick={toggleMobileMenu}
+          className="relative flex flex-row items-center gap-2 ml-8 cursor-pointer lg:hidden"
+        >
+          <p className="text-sm text-white">Browse</p>
+          <ChevronDownIcon
+            className={`w-4 text-white fill-white transition ${
+              showMobileMenu ? "rotate-180" : "rotate-0"
+            }`}
+          />
+          <MobileMenu visible={showMobileMenu} />
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
+```
+
+### 20. Navbar [AccountMenu]
+
+- create [AccountMenu](/components/AccountMenu.tsx)
+
+```tsx
+import { signOut } from "next-auth/react";
+import React from "react";
+
+import useCurrentUser from "@/hooks/useCurrentUser";
+
+interface AccountMenuProps {
+  visible?: boolean;
+}
+
+const AccountMenu = ({ visible }: AccountMenuProps) => {
+  const { data: currentUser } = useCurrentUser();
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div className="bg-black w-56 absolute top-14 right-0 py-5 flex-col border-2 border-gray-800 flex">
+      <div className="flex flex-col gap-3">
+        <div className="px-3 group/item flex flex-row gap-3 items-center w-full">
+          <img
+            className="w-8 rounded-md"
+            src="/images/default-blue.png"
+            alt=""
+          />
+          <p className="text-white text-sm group-hover/item:underline">
+            {currentUser?.currentUser.name}
+          </p>
+        </div>
+      </div>
+      <hr className="bg-gray-600 border-0 h-px my-4" />
+      <div
+        onClick={() => signOut()}
+        className="px-3 text-center text-white text-sm hover:underline"
+      >
+        Sign out of Netflix
+      </div>
+    </div>
+  );
+};
+
+export default AccountMenu;
+```
+
+- update create [Navbar](/components/Navbar.tsx)
+
+```tsx
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  BellIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/outline";
+
+import AccountMenu from "@/components/AccountMenu";
+import MobileMenu from "@/components/MobileMenu";
+import NavbarItem from "@/components/NavbarItem";
+
+const TOP_OFFSET = 66; // is the value where we trigger the background color change
+
+const Navbar = () => {
+  const [showAccountMenu, setShowAccountMenu] = useState(false); // to toggle the account menu
+  const [showMobileMenu, setShowMobileMenu] = useState(false); // to toggle the mobile menu
+  const [showBackground, setShowBackground] = useState(false); // to show the background color when the user scrolls down
+
+  // to show the background color when the user scrolls down
+  useEffect(() => {
+    const handleScroll = () => {
+      console.log(window.scrollY);
+      if (window.scrollY >= TOP_OFFSET) {
+        setShowBackground(true);
+      } else {
+        setShowBackground(false);
+      }
+    };
+    //listen to the scroll event
+    window.addEventListener("scroll", handleScroll);
+    //remove the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  // to toggle the account menu
+  const toggleAccountMenu = useCallback(() => {
+    setShowAccountMenu((current) => !current);
+  }, []);
+
+  // to toggle the mobile menu
+  const toggleMobileMenu = useCallback(() => {
+    setShowMobileMenu((current) => !current);
+  }, []);
+
+  return (
+    <nav className="fixed z-40 w-full">
+      <div
+        className={`px-4 md:px-16 py-6 flex flex-row items-center transition duration-500 ${
+          showBackground ? "bg-zinc-900 bg-opacity-90" : ""
+        }`}
+      >
+        <img src="/images/logo.png" className="h-4 lg:h-7" alt="Logo" />
+        <div className="flex-row hidden ml-8 gap-7 lg:flex">
+          <NavbarItem label="Home" active />
+          <NavbarItem label="Series" />
+          <NavbarItem label="Films" />
+          <NavbarItem label="New & Popular" />
+          <NavbarItem label="My List" />
+          <NavbarItem label="Browse by Languages" />
+        </div>
+        <div
+          onClick={toggleMobileMenu}
+          className="relative flex flex-row items-center gap-2 ml-8 cursor-pointer lg:hidden"
+        >
+          <p className="text-sm text-white">Browse</p>
+          <ChevronDownIcon
+            className={`w-4 text-white fill-white transition ${
+              showMobileMenu ? "rotate-180" : "rotate-0"
+            }`}
+          />
+          <MobileMenu visible={showMobileMenu} />
+        </div>
+        <div className="flex flex-row items-center ml-auto gap-7">
+          <div className="text-gray-200 transition cursor-pointer hover:text-gray-300">
+            <MagnifyingGlassIcon className="w-6" />
+          </div>
+          <div className="text-gray-200 transition cursor-pointer hover:text-gray-300">
+            <BellIcon className="w-6" />
+          </div>
+          <div
+            onClick={toggleAccountMenu}
+            className="relative flex flex-row items-center gap-2 cursor-pointer"
+          >
+            <div className="w-6 h-6 overflow-hidden rounded-md lg:w-10 lg:h-10">
+              <img src="/images/default-blue.png" alt="" />
+            </div>
+            <ChevronDownIcon
+              className={`w-4 text-white fill-white transition ${
+                showAccountMenu ? "rotate-180" : "rotate-0"
+              }`}
+            />
+            <AccountMenu visible={showAccountMenu} />
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
+```
 
 ## Section 7:
 
@@ -811,3 +1144,4 @@ export default profiles;
 ## External Links
 
 - [React icons](https://react-icons.github.io/react-icons/)
+- [group/item - tailwind css](/)
