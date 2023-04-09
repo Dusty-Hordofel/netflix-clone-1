@@ -1236,7 +1236,225 @@ const Billboard: React.FC = () => {
 export default Billboard;
 ```
 
-### 24.
+### 24. Movie List
+
+- create [movies Api](/pages/api/movies/index.ts)
+
+```ts
+import { NextApiRequest, NextApiResponse } from "next";
+import prisma from "@/lib/prismadb"; //prismadb or prisma
+import serverAuth from "@/lib/serverAuth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  try {
+    if (req.method !== "GET") {
+      return res.status(405).end();
+    }
+
+    await serverAuth(req);
+
+    //load all movies
+    const movies = await prisma.movie.findMany();
+    //return all movies
+    return res.status(200).json(movies);
+  } catch (error) {
+    console.log({ error });
+    return res.status(500).end();
+  }
+}
+```
+
+- create [useMovieList](/hooks/useMovieList.ts)
+
+```tsx
+import useSwr from "swr";
+import fetcher from "@/lib/fetcher";
+
+const useMovies = () => {
+  const { data, error, isLoading } = useSwr("/api/movies", fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+  return {
+    data,
+    error,
+    isLoading,
+  };
+};
+
+export default useMovies;
+```
+
+- create [MovieCard](/components/MovieCard.tsx)
+
+```tsx
+import React, { useCallback } from "react";
+import { useRouter } from "next/router";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { PlayIcon } from "@heroicons/react/24/solid";
+
+import { MovieInterface } from "@/types";
+// import FavoriteButton from "@/components/FavoriteButton";
+// import useInfoModalStore from "@/hooks/useInfoModalStore";
+
+interface MovieCardProps {
+  data: MovieInterface;
+}
+
+const MovieCard = ({ data }: MovieCardProps) => {
+  const router = useRouter();
+  //   const { openModal } = useInfoModalStore();
+
+  const redirectToWatch = useCallback(
+    () => router.push(`/watch/${data.id}`),
+    [router, data.id]
+  );
+
+  return (
+    <div className="group bg-zinc-900 col-span relative h-[12vw]">
+      <img
+        // onClick={redirectToWatch}
+        src={data.thumbnailUrl}
+        alt="Movie"
+        draggable={false}
+        className="
+        cursor-pointer
+        object-cover
+        transition
+        duration
+        shadow-xl
+        rounded-md
+        group-hover:opacity-90
+        sm:group-hover:opacity-0
+        delay-300
+        w-full
+        h-[12vw]
+      "
+      />
+      <div
+        className="
+        opacity-0
+        absolute
+        top-0
+        transition
+        duration-200
+        z-10
+        invisible
+        sm:visible
+        delay-300
+        w-full
+        scale-0
+        group-hover:scale-110
+        group-hover:-translate-y-[6vw]
+        group-hover:translate-x-[2vw]
+        group-hover:opacity-100
+      "
+      >
+        <img
+          //   onClick={redirectToWatch}
+          src={data.thumbnailUrl}
+          alt="Movie"
+          draggable={false}
+          className="
+          cursor-pointer
+          object-cover
+          transition
+          duration
+          shadow-xl
+          rounded-t-md
+          w-full
+          h-[12vw]
+        "
+        />
+        <div className="absolute z-10 w-full p-2 transition shadow-md bg-zinc-800 lg:p-4 rounded-b-md">
+          <div className="flex flex-row items-center gap-3">
+            <div
+              onClick={redirectToWatch}
+              className="flex items-center justify-center w-6 h-6 transition bg-white rounded-full cursor-pointer lg:w-10 lg:h-10 hover:bg-neutral-300"
+            >
+              <PlayIcon className="w-4 text-black lg:w-6" />
+            </div>
+            {/* <FavoriteButton movieId={data.id} /> */}
+            <div
+              //   onClick={() => openModal(data?.id)}
+              className="flex items-center justify-center w-6 h-6 ml-auto transition border-2 border-white rounded-full cursor-pointer group/item lg:w-10 lg:h-10 hover:border-neutral-300"
+            >
+              <ChevronDownIcon className="w-4 text-white group-hover/item:text-neutral-300 lg:w-6" />
+            </div>
+          </div>
+          <p className="mt-4 font-semibold text-green-400">
+            New <span className="text-white">2023</span>
+          </p>
+          <div className="flex flex-row items-center gap-2 mt-4">
+            <p className="text-white text-[10px] lg:text-sm">{data.duration}</p>
+          </div>
+          <div className="flex flex-row items-center gap-2 mt-4 text-[8px] text-white lg:text-sm">
+            <p>{data.genre}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MovieCard;
+```
+
+- create [](/components/MovieList.tsx)
+
+```tsx
+import React from "react";
+
+import { MovieInterface } from "@/types";
+import MovieCard from "@/components/MovieCard";
+import { isEmpty } from "lodash";
+
+interface MovieListProps {
+  data: MovieInterface[];
+  title: string;
+}
+
+const MovieList = ({ data, title }: MovieListProps) => {
+  if (isEmpty(data)) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 md:px-12 mt-4 space-y-8">
+      <div>
+        <p className="text-white text-md md:text-xl lg:text-2xl font-semibold mb-4">
+          {title}
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {data.map((movie) => (
+            <MovieCard key={movie.id} data={movie} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MovieList;
+```
+
+- create [types](/types/index.ts)
+
+```ts
+export interface MovieInterface {
+  id: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  videoUrl: string;
+  duration: string;
+  genre: string;
+}
+```
 
 ### 25.
 

@@ -1,6 +1,8 @@
 import Billboard from "@/components/Billboard";
+import MovieList from "@/components/MovieList";
 import Navbar from "@/components/Navbar";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import useMovieList from "@/hooks/useMovieList";
 import { NextPageContext } from "next";
 import { getSession, signOut } from "next-auth/react";
 
@@ -26,19 +28,15 @@ export async function getServerSideProps(context: NextPageContext) {
 }
 
 export default function Home() {
-  //fetch user using useCurrentUser hook
-  const { data: user } = useCurrentUser(); //this will return a user object if the user is authenticated
-  console.log("🚀 ~ file: index.tsx:29 ~ Home ~ user:", user?.currentUser.name);
-
+  const { data: movies = [] } = useMovieList();
   return (
     <>
       <Navbar />
       <Billboard />
-      {/* <h1 className="text-amber-400 text-bold ">Netflix clone</h1>
-      <p className="text-white">Logged in as : {user?.currentUser.name}</p>
-      <button className="w-full h-10 bg-white" onClick={() => signOut()}>
-        Logout!
-      </button> */}
+
+      <div className="pb-40">
+        <MovieList title="Trending Now" data={movies} />
+      </div>
     </>
   );
 }
