@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import { compare } from "bcrypt";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
@@ -42,7 +42,7 @@ export default NextAuth({
           throw new Error("Email doesn't exist or invalid");
         }
         // bcrypt.compare() is a function that compares the password entered by the user with the hashed password stored in the database.
-        const isCorrectPassword = await bcrypt.compare(
+        const isCorrectPassword = await compare(
           credentials.password,
           user.hashedPassword
         );
