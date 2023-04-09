@@ -1879,7 +1879,37 @@ const Watch = () => {
 export default Watch;
 ```
 
-### 33.
+## Section 10. Info Modal
+
+### 33. useInfoModal Hooks
+
+- install zustand
+
+```bash
+$ npm i zustand
+```
+
+- create [useInfoModal](/)
+
+```tsx
+import { create } from "zustand";
+
+export interface ModalStoreInterface {
+  movieId?: string;
+  isOpen: boolean;
+  openModal: (movieId: string) => void;
+  closeModal: () => void;
+}
+
+const useInfoModalStore = create<ModalStoreInterface>((set) => ({
+  movieId: undefined,
+  isOpen: false,
+  openModal: (movieId: string) => set({ isOpen: true, movieId }),
+  closeModal: () => set({ isOpen: false, movieId: undefined }),
+}));
+
+export default useInfoModalStore;
+```
 
 ### 34.
 
