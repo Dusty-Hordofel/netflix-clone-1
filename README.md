@@ -1544,7 +1544,7 @@ export default async function handler(
 }
 ```
 
-### 26. Api to Load our Favorites Movies
+### 26. Api to Load our Favorite Movies
 
 - create [favorites](/pages/api/favorites.ts)
 
@@ -1581,7 +1581,30 @@ export default async function handler(
 }
 ```
 
-### 27.
+### 27. useFavorites hooks
+
+- create [useFavorites](/hooks/useFavorites.ts)
+
+```ts
+import useSwr from "swr";
+import fetcher from "@/libs/fetcher";
+
+const useMovies = () => {
+  const { data, error, isLoading, mutate } = useSwr("/api/favorites", fetcher, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+  return {
+    data,
+    error,
+    isLoading,
+    mutate,
+  };
+};
+
+export default useMovies;
+```
 
 ### 28.
 
