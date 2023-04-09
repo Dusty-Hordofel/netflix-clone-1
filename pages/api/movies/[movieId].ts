@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import prismadb from "@/libs/prismadb";
+import prisma from "@/libs/prismadb";
 import serverAuth from "@/libs/serverAuth";
 
 export default async function handler(
@@ -26,7 +26,7 @@ export default async function handler(
       throw new Error("Missing Id");
     }
     //find the movie in the database using the movie id
-    const movies = await prismadb.movie.findUnique({
+    const movies = await prisma.movie.findUnique({
       where: {
         id: movieId,
       },
