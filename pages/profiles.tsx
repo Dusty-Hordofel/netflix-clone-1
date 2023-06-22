@@ -33,7 +33,7 @@ export async function getServerSideProps(context: NextPageContext) {
   };
 }
 
-const UserCard: React.FC<UserCardProps> = ({ name }) => {
+const UserCard = ({ name }: UserCardProps) => {
   const imgSrc = images[Math.floor(Math.random() * 4)];
 
   return (
